@@ -1,0 +1,103 @@
+import 'package:bloc/bloc.dart';
+import 'package:equatable/equatable.dart';
+import 'package:meta/meta.dart';
+
+// Events
+abstract class CountryEvent extends Equatable {
+  const CountryEvent();
+
+  @override
+  List<Object> get props => [];
+}
+
+class FetchCountries extends CountryEvent {}
+
+class FetchCountryDetails extends CountryEvent {
+  final String countryName;
+
+  const FetchCountryDetails(this.countryName);
+
+  @override
+  List<Object> get props => [countryName];
+}
+
+// States
+abstract class CountryState extends Equatable {
+  const CountryState();
+
+  @override
+  List<Object> get props => [];
+}
+
+class CountryInitial extends CountryState {}
+
+class CountryLoading extends CountryState {}
+
+class CountryListLoaded extends CountryState {
+  final List<String> countries;
+
+  const CountryListLoaded(this.countries);
+
+  @override
+  List<Object> get props => [countries];
+}
+
+class CountryDetailsLoaded extends CountryState {
+  final Map<String, dynamic> countryDetails;
+
+  const CountryDetailsLoaded(this.countryDetails);
+
+  @override
+  List<Object> get props => [countryDetails];
+}
+
+class CountryError extends CountryState {
+  final String message;
+
+  const CountryError(this.message);
+
+  @override
+  List<Object> get props => [message];
+}
+
+// Bloc
+class CountryBloc extends Bloc<CountryEvent, CountryState> {
+  CountryBloc() : super(CountryInitial()) {
+    on<FetchCountries>(_onFetchCountries);
+    on<FetchCountryDetails>(_onFetchCountryDetails);
+  }
+
+  Future<void> _onFetchCountries(FetchCountries event, Emitter<CountryState> emit) async {
+    emit(CountryLoading());
+    try {
+      // Fetch the list of countries from an API or data source
+      final countries = await fetchCountries();
+      emit(CountryListLoaded(countries));
+    } catch (e) {
+      emit(CountryError('Failed to fetch countries'));
+    }
+  }
+
+  Future<void> _onFetchCountryDetails(FetchCountryDetails event, Emitter<CountryState> emit) async {
+    emit(CountryLoading());
+    try {
+      // Fetch the country details from an API or data source
+      final countryDetails = await fetchCountryDetails(event.countryName);
+      emit(CountryDetailsLoaded(countryDetails));
+    } catch (e) {
+      emit(CountryError('Failed to fetch country details'));
+    }
+  }
+
+  Future<List<String>> fetchCountries() async {
+    // Implement the logic to fetch the list of countries
+    // This is just a placeholder
+    return ['Country1', 'Country2', 'Country3'];
+  }
+
+  Future<Map<String, dynamic>> fetchCountryDetails(String countryName) async {
+    // Implement the logic to fetch the country details
+    // This is just a placeholder
+    return {'name': countryName, 'details': 'Some details about $countryName'};
+  }
+}
